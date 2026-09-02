@@ -24,9 +24,9 @@ export const AuthProvider = ({ children }) => {
         return;
       }
       try {
-        const base =
-          import.meta.env.VITE_BASE_URL || "http://localhost:5000/api";
-        const res = await fetch(`${base}/auth/me`, {
+        const authBase =
+          (import.meta.env.VITE_AUTH_SERVICE_URL || "http://localhost:5001") + "/api";
+        const res = await fetch(`${authBase}/auth/me`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (res.ok) {
@@ -45,12 +45,12 @@ export const AuthProvider = ({ children }) => {
     fetchUser();
   }, [token]);
 
-  // Socket.io connection
+  // Socket.io connection (Messaging Service: 5003)
   useEffect(() => {
     if (!token || !user) return;
 
     const socketUrl =
-      import.meta.env.VITE_SOCKET_URL || "http://localhost:5000";
+      import.meta.env.VITE_MESSAGING_SERVICE_URL || import.meta.env.VITE_SOCKET_URL || "http://localhost:5003";
     const newSocket = io(socketUrl, {
       auth: { token },
       transports: ["websocket"],

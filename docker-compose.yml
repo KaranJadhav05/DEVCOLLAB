@@ -1,0 +1,146 @@
+services:
+  # ── 1. Database Layer ────────────────────────────────────────────────────────
+  mongo:
+    image: mongo:7-jammy
+    container_name: devcollab-mongo
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - devcollab-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── 2. Authentication & User Service (Port: 5001) ────────────────────────────
+  auth-service:
+    build:
+      context: ./Backend/auth-service
+      dockerfile: Dockerfile
+    container_name: devcollab-auth-service
+    restart: unless-stopped
+    ports:
+      - "5001:5001"
+    environment:
+      - PORT=5001
+      - MONGO_URI=mongodb://mongo:27017/devcollab
+      - JWT_SECRET=JG1n4rsYeeGW3QbpsA2R911sZyw0ReiY7t8CPKW9BVT
+      - CLIENT_URL=http://localhost:5173
+    depends_on:
+      mongo:
+        condition: service_healthy
+    networks:
+      - devcollab-network
+
+  # ── 3. Notification Service (Port: 5004) ─────────────────────────────────────
+  notification-service:
+    build:
+      context: ./Backend/notification-service
+      dockerfile: Dockerfile
+    container_name: devcollab-notification-service
+    restart: unless-stopped
+    ports:
+      - "5004:5004"
+    environment:
+      - PORT=5004
+      - MONGO_URI=mongodb://mongo:27017/devcollab
+      - JWT_SECRET=JG1n4rsYeeGW3QbpsA2R911sZyw0ReiY7t8CPKW9BVT
+      - CLIENT_URL=http://localhost:5173
+    depends_on:
+      mongo:
+        condition: service_healthy
+    networks:
+      - devcollab-network
+
+  # ── 4. Project & Collaboration Service (Port: 5002) ──────────────────────────
+  project-service:
+    build:
+      context: ./Backend/project-service
+      dockerfile: Dockerfile
+    container_name: devcollab-project-service
+    restart: unless-stopped
+    ports:
+      - "5002:5002"
+    environment:
+      - PORT=5002
+      - MONGO_URI=mongodb://mongo:27017/devcollab
+      - JWT_SECRET=JG1n4rsYeeGW3QbpsA2R911sZyw0ReiY7t8CPKW9BVT
+      - NOTIFICATION_SERVICE_URL=http://notification-service:5004
+      - CLIENT_URL=http://localhost:5173
+    depends_on:
+      mongo:
+        condition: service_healthy
+      notification-service:
+        condition: service_started
+    networks:
+      - devcollab-network
+
+  # ── 5. Messaging & WebRTC Signaling Service (Port: 5003) ─────────────────────
+  messaging-service:
+    build:
+      context: ./Backend/messaging-service
+      dockerfile: Dockerfile
+    container_name: devcollab-messaging-service
+    restart: unless-stopped
+    ports:
+      - "5003:5003"
+    environment:
+      - PORT=5003
+      - MONGO_URI=mongodb://mongo:27017/devcollab
+      - JWT_SECRET=JG1n4rsYeeGW3QbpsA2R911sZyw0ReiY7t8CPKW9BVT
+      - CLIENT_URL=http://localhost:5173
+    depends_on:
+      mongo:
+        condition: service_healthy
+    networks:
+      - devcollab-network
+
+  # ── 6. API Gateway (Port: 5000) ──────────────────────────────────────────────
+  api-gateway:
+    build:
+      context: ./Backend/gateway
+      dockerfile: Dockerfile
+    container_name: devcollab-api-gateway
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      - CLIENT_URL=http://localhost:5173
+      - AUTH_SERVICE_URL=http://auth-service:5001
+      - PROJECT_SERVICE_URL=http://project-service:5002
+      - MESSAGING_SERVICE_URL=http://messaging-service:5003
+      - NOTIFICATION_SERVICE_URL=http://notification-service:5004
+    depends_on:
+      - auth-service
+      - project-service
+      - messaging-service
+      - notification-service
+    networks:
+      - devcollab-network
+
+  # ── 7. Frontend Client Application (Port: 5173) ──────────────────────────────
+  frontend:
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile
+    container_name: devcollab-frontend
+    restart: unless-stopped
+    ports:
+      - "5173:80"
+    depends_on:
+      - api-gateway
+    networks:
+      - devcollab-network
+
+volumes:
+  mongo-data:
+    driver: local
+
+networks:
+  devcollab-network:
+    driver: bridge

@@ -9,6 +9,7 @@ import Explore from './pages/Explore';
 import Login from './pages/Login';
 import Profile from './pages/Profile';
 import Chat from './pages/Chat';
+import Meeting from './pages/Meeting';
 import { AuthProvider, useAuth } from './context/AuthContext';
 
 const AppRoutes = () => {
@@ -65,6 +66,8 @@ const AppRoutes = () => {
               <Route path="/profile" element={<Profile />} />
               <Route path="/chat" element={<Chat />} />
               <Route path="/chat/:userId" element={<Chat />} />
+              <Route path="/meeting" element={<Meeting />} />
+              <Route path="/meeting/:roomId" element={<Meeting />} />
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>
           </main>

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Trash2, Plus, ExternalLink, Loader, RefreshCw } from 'lucide-react';
+import { Trash2, Plus, ExternalLink, Loader, RefreshCw, Video } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { projectAPI } from '../utils/api';
 import { useAuth } from '../context/AuthContext';
@@ -13,12 +13,19 @@ const STATUS_COLORS = {
 
 const ProjectCard = ({ project, isOwner, onDelete }) => {
   const [deleting, setDeleting] = useState(false);
+  const navigate = useNavigate();
   const statusStyle = STATUS_COLORS[project.status] || STATUS_COLORS['Not Started'];
 
   const handleDelete = async () => {
     if (!window.confirm('Delete this project? This cannot be undone.')) return;
     setDeleting(true);
     await onDelete(project._id);
+  };
+
+  const handleJoinMeeting = () => {
+    navigate(`/meeting/project-${project._id}`, {
+      state: { projectTitle: project.title },
+    });
   };
 
   return (
@@ -54,20 +61,44 @@ const ProjectCard = ({ project, isOwner, onDelete }) => {
         </div>
       )}
 
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.5rem', gap: '0.5rem', flexWrap: 'wrap' }}>
         <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>
           {project.members?.length || 0} member{project.members?.length !== 1 ? 's' : ''}
         </span>
-        {isOwner && (
+
+        <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
           <button
-            onClick={handleDelete}
-            disabled={deleting}
-            style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: '#ef4444', fontSize: '0.8rem', fontWeight: 600, background: 'rgba(239,68,68,0.07)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 'var(--radius-sm)', padding: '0.4rem 0.75rem', cursor: 'pointer', transition: 'all 0.15s' }}
+            onClick={handleJoinMeeting}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+              color: '#fff',
+              fontSize: '0.8rem',
+              fontWeight: 700,
+              background: 'linear-gradient(135deg, #6366f1, #a855f7)',
+              border: 'none',
+              borderRadius: 'var(--radius-sm)',
+              padding: '0.4rem 0.85rem',
+              cursor: 'pointer',
+              boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)',
+            }}
+            title="Start/Join WebRTC Video Meeting"
           >
-            {deleting ? <Loader size={14} style={{ animation: 'spin 0.8s linear infinite' }} /> : <Trash2 size={14} />}
-            Delete
+            <Video size={14} /> Meet
           </button>
-        )}
+
+          {isOwner && (
+            <button
+              onClick={handleDelete}
+              disabled={deleting}
+              style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: '#ef4444', fontSize: '0.8rem', fontWeight: 600, background: 'rgba(239,68,68,0.07)', border: '1px solid rgba(239,68,68,0.2)', borderRadius: 'var(--radius-sm)', padding: '0.4rem 0.75rem', cursor: 'pointer', transition: 'all 0.15s' }}
+            >
+              {deleting ? <Loader size={14} style={{ animation: 'spin 0.8s linear infinite' }} /> : <Trash2 size={14} />}
+              Delete
+            </button>
+          )}
+        </div>
       </div>
     </motion.div>
   );

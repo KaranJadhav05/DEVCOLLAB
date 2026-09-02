@@ -284,29 +284,54 @@ const Chat = () => {
             borderBottom: '1px solid var(--border)',
             display: 'flex',
             alignItems: 'center',
-            gap: '1rem',
+            justifyContent: 'space-between',
             background: 'var(--surface)',
           }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+              <button
+                onClick={() => setActiveUser(null)}
+                style={{ display: 'flex', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 0 }}
+              >
+                <ChevronLeft size={22} />
+              </button>
+              <div style={{
+                width: 40, height: 40, borderRadius: '50%',
+                background: `hsl(${activeUser.name?.charCodeAt(0) * 15 || 0}, 65%, 55%)`,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                color: 'white', fontWeight: 700, fontSize: '1rem', flexShrink: 0,
+              }}>
+                {activeUser.name?.charAt(0).toUpperCase()}
+              </div>
+              <div>
+                <p style={{ fontWeight: 700, fontSize: '1rem' }}>{activeUser.name}</p>
+                <p style={{ fontSize: '0.78rem', color: isOnline(activeUser._id) ? '#22c55e' : 'var(--text-muted)', fontWeight: 500 }}>
+                  {isOnline(activeUser._id) ? '🟢 Online' : 'Offline'}
+                </p>
+              </div>
+            </div>
+
             <button
-              onClick={() => setActiveUser(null)}
-              style={{ display: 'flex', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: 0 }}
+              onClick={() => navigate(`/meeting/chat-${[user._id, activeUser._id].sort().join('-')}`, {
+                state: { projectTitle: `Direct Collaboration with ${activeUser.name}` }
+              })}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                background: 'linear-gradient(135deg, #6366f1, #a855f7)',
+                color: '#fff',
+                border: 'none',
+                padding: '0.45rem 0.9rem',
+                borderRadius: 'var(--radius-sm, 0.5rem)',
+                cursor: 'pointer',
+                fontSize: '0.82rem',
+                fontWeight: 700,
+                boxShadow: '0 4px 12px rgba(99, 102, 241, 0.25)',
+              }}
+              title="Launch WebRTC Video Meeting"
             >
-              <ChevronLeft size={22} />
+              Start Video Call
             </button>
-            <div style={{
-              width: 40, height: 40, borderRadius: '50%',
-              background: `hsl(${activeUser.name?.charCodeAt(0) * 15 || 0}, 65%, 55%)`,
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: 'white', fontWeight: 700, fontSize: '1rem', flexShrink: 0,
-            }}>
-              {activeUser.name?.charAt(0).toUpperCase()}
-            </div>
-            <div>
-              <p style={{ fontWeight: 700, fontSize: '1rem' }}>{activeUser.name}</p>
-              <p style={{ fontSize: '0.78rem', color: isOnline(activeUser._id) ? '#22c55e' : 'var(--text-muted)', fontWeight: 500 }}>
-                {isOnline(activeUser._id) ? 'Online' : 'Offline'}
-              </p>
-            </div>
           </div>
 
           {/* Messages */}
