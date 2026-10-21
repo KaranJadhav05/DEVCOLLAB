@@ -7,8 +7,9 @@ const connectDB = require('./config/db');
 const Message = require('./models/Message');
 const { buildConversationId } = require('./controllers/messageController');
 const jwt = require('jsonwebtoken');
-const User = require('./models/User');
 
+
+const User = require('./models/User');
 
 
 
